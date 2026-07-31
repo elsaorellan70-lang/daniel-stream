@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07060d">
+<title>madelyn pelis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Monoton&family=Audiowide&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+:root{
+  --bg:#07060d; --bg2:#0c0a18; --panel:#0e0b1c; --panel2:#14102a; --line:#241d44;
+  --ink:#eaf2ff; --dim:#8b86b8; --dim2:#5d5888;
+  --cyan:#19f0ff; --mag:#ff2bd6; --lime:#b6ff3a; --vio:#8b5cff; --yel:#ffe14d; --red:#ff4d6d;
+  --glow-c:0 0 18px rgba(25,240,255,.55); --glow-m:0 0 18px rgba(255,43,214,.5);
+  --r:14px; --vh:1vh;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Space Grotesk",system-ui,sans-serif;
+  height:calc(var(--vh)*100); overflow:hidden; position:relative;
+}
+/* ambiente synthwave */
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(900px 520px at 50% -10%, rgba(255,43,214,.16), transparent 60%),
+    radial-gradient(800px 600px at 12% 110%, rgba(25,240,255,.12), transparent 60%),
+    radial-gradient(700px 500px at 92% 96%, rgba(139,92,255,.12), transparent 60%),
+    var(--bg);
+}
+body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:46vh;z-index:-1;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(25,240,255,.16) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,43,214,.12) 1px,transparent 1px);
+  background-size:44px 44px,44px 44px;
+  transform:perspective(420px) rotateX(62deg); transform-origin:bottom;
+  -webkit-mask-image:linear-gradient(transparent,#000 70%); mask-image:linear-gradient(transparent,#000 70%);
+  animation:grid 7s linear infinite;
+}
+@keyframes grid{to{background-position:0 44px,44px 0}}
+.scanlines{position:fixed;inset:0;z-index:4000;pointer-events:none;opacity:.5;mix-blend-mode:overlay;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px)}
+::selection{background:var(--mag);color:#1a0014}
+button{font-family:inherit;cursor:pointer;color:inherit;background:none;border:0}
+input,textarea{font-family:inherit}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;border-radius:6px}
+.mono{font-family:"Space Mono",monospace}
+.disp{font-family:"Monoton",cursive;font-weight:400}
+.arc{font-family:"Audiowide",cursive}
+.hidden{display:none!important}
+
+/* ── topbar ── */
+.top{display:flex;align-items:center;gap:12px;padding:10px 14px;padding-top:max(10px,env(safe-area-inset-top));
+  background:linear-gradient(180deg,rgba(10,8,22,.96),rgba(10,8,22,.78));
+  border-bottom:1px solid var(--line);backdrop-filter:blur(8px);position:relative;z-index:30}
+.brand{display:flex;align-items:baseline;gap:8px;min-width:0}
+.brand .logo{font-family:"Monoton",cursive;font-size:1.5rem;letter-spacing:1px;line-height:1;
+  color:#fff;text-shadow:0 0 6px var(--cyan),0 0 16px var(--cyan),0 0 30px rgba(25,240,255,.5);
+  animation:flick 6s infinite}
+.brand .logo i{color:var(--mag);text-shadow:0 0 6px var(--mag),0 0 16px var(--mag)}
+@keyframes flick{0%,93%,96%,100%{opacity:1}94%{opacity:.55}95%{opacity:.8}97%{opacity:.6}}
+.brand .tag{font:600 9px "Space Mono",monospace;letter-spacing:2px;color:var(--dim2);text-transform:uppercase}
+.top .spacer{flex:1}
+.pill{display:flex;align-items:center;gap:6px;font:700 10px "Space Mono",monospace;letter-spacing:1px;
+  text-transform:uppercase;padding:7px 11px;border:1px solid var(--line);border-radius:999px;color:var(--dim);white-space:nowrap}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--dim2)}
+.pill.live{color:var(--lime);border-color:rgba(182,255,58,.4)}
+.pill.live .dot{background:var(--lime);box-shadow:0 0 8px var(--lime);animation:pulse 1.1s infinite}
+.pill.host{color:var(--mag);border-color:rgba(255,43,214,.4)}
+.pill.host .dot{background:var(--mag);box-shadow:0 0 8px var(--mag)}
+.pill.guest{color:var(--cyan);border-color:rgba(25,240,255,.4)}
+.pill.guest .dot{background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.pill.view .dot{background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.iconbtn{width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--line);border-radius:11px;
+  font-size:1.05rem;transition:.15s}
+.iconbtn:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:var(--glow-c)}
+.iconbtn:active{transform:scale(.92)}
+@keyframes pulse{50%{opacity:.3}}
+
+/* ── sala / layout ── */
+.room{display:flex;flex-direction:column;height:100%;height:calc(var(--vh)*100)}
+.body{flex:1;min-height:0;display:grid;grid-template-columns:1fr;grid-template-rows:auto 1fr;gap:0;overflow:hidden}
+
+/* barra de fuente / código */
+.srcbar{display:flex;gap:8px;align-items:stretch;padding:10px 12px;background:var(--bg2);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.srcbar .field{flex:1;min-width:160px;display:flex;align-items:center;gap:8px;background:var(--panel);
+  border:1px solid var(--line);border-radius:11px;padding:0 12px;transition:.15s}
+.srcbar .field:focus-within{border-color:var(--cyan);box-shadow:var(--glow-c)}
+.srcbar .field span{color:var(--dim2);font-size:.95rem}
+.srcbar input{flex:1;background:none;border:0;color:var(--ink);padding:12px 0;font:400 12.5px "Space Mono",monospace;min-width:0}
+.srcbar input::placeholder{color:var(--dim2)}
+.btn{font-family:"Audiowide",cursive;font-size:11px;letter-spacing:1px;padding:12px 16px;border-radius:11px;
+  border:1px solid var(--line);color:var(--ink);transition:.15s;white-space:nowrap}
+.btn:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:var(--glow-c)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:linear-gradient(120deg,var(--mag),var(--vio));border-color:transparent;color:#fff;
+  box-shadow:0 0 18px rgba(255,43,214,.4)}
+.btn.primary:hover{filter:brightness(1.12);box-shadow:0 0 26px rgba(255,43,214,.6)}
+.btn.lime{background:linear-gradient(120deg,var(--lime),var(--cyan));border-color:transparent;color:#06121a}
+.codebox{display:flex;align-items:center;gap:10px;width:100%;background:repeating-linear-gradient(45deg,#120e26 0 10px,#16102e 10px 20px);
+  border:1px dashed var(--mag);border-radius:11px;padding:9px 12px}
+.codebox .lbl{font:700 9px "Space Mono",monospace;letter-spacing:2px;color:var(--dim);text-transform:uppercase}
+.codebox .code{font-family:"Monoton",cursive;font-size:1.35rem;letter-spacing:3px;color:#fff;
+  text-shadow:0 0 8px var(--mag),0 0 18px rgba(255,43,214,.6)}
+.codebox .grow{flex:1}
+
+/* stage (video) */
+.stagecol{min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.stage{position:relative;background:#000;aspect-ratio:16/9;width:100%;
+  border:2px solid var(--line);border-radius:var(--r);overflow:hidden;margin:10px 12px 0;
+  box-shadow:0 0 0 1px #000, 0 0 40px -8px rgba(25,240,255,.25), 0 0 60px -10px rgba(255,43,214,.25), inset 0 0 60px rgba(0,0,0,.7);
+  flex:0 0 auto}
+.stage::before,.stage::after{content:"";position:absolute;width:14px;height:14px;border-radius:50%;z-index:6;
+  background:radial-gradient(circle at 35% 35%,#3a3366,#0c0a18);box-shadow:inset 0 0 4px #000,0 0 6px rgba(25,240,255,.3)}
+.stage::before{top:7px;left:7px}.stage::after{bottom:7px;right:7px}
+.stage video,.stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000;display:block}
+.floaters{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:5}
+.floater{position:absolute;bottom:-10px;font-size:2rem;filter:drop-shadow(0 0 8px rgba(255,255,255,.5));
+  animation:rise 2.6s ease-out forwards;will-change:transform,opacity}
+@keyframes rise{0%{transform:translateY(0) scale(.6);opacity:0}12%{opacity:1}100%{transform:translateY(-115vh) scale(1.25) rotate(var(--rot,0deg));opacity:0}}
+.stage .badge{position:absolute;top:9px;left:9px;z-index:6;display:flex;gap:7px}
+.stage .badge .b{font:700 9px "Space Mono",monospace;letter-spacing:1px;padding:4px 8px;border-radius:6px;
+  background:rgba(7,6,13,.7);border:1px solid var(--line);backdrop-filter:blur(4px)}
+.stage .badge .b.rec{color:var(--red);border-color:rgba(255,77,109,.5)}
+.stage .badge .b.rec i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red);box-shadow:0 0 7px var(--red);margin-right:5px;animation:pulse 1s infinite}
+.stage .badge .b.sync{color:var(--lime);border-color:rgba(182,255,58,.4)}
+.stage .extover{position:absolute;inset:0;z-index:4;display:grid;place-items:center;text-align:center;padding:22px;
+  background:repeating-linear-gradient(45deg,#0a0814 0 14px,#100c20 14px 28px)}
+.stage .extover>div{display:grid;gap:11px;justify-items:center;max-width:440px}
+.stage .extover b{font-family:"Audiowide",cursive;font-size:clamp(.95rem,2.4vw,1.3rem);color:#fff;line-height:1.3}
+.stage .extover .dom{font:700 12px "Space Mono",monospace;color:var(--mag)}
+.stage .extover p{font-size:12px;color:var(--dim);line-height:1.5}
+.stage .extover a{font-family:"Audiowide",cursive;font-size:11px;color:#06121a;background:var(--cyan);
+  padding:11px 18px;border-radius:10px;text-decoration:none;box-shadow:var(--glow-c)}
+.idle{position:absolute;inset:0;z-index:3;display:grid;place-items:center;text-align:center;gap:6px;
+  background:radial-gradient(120% 120% at 50% 0%,#120e26,#050409)}
+.idle .disp{font-size:clamp(1.4rem,5vw,2.4rem);color:#fff;text-shadow:0 0 10px var(--cyan),0 0 26px rgba(25,240,255,.5);animation:flick 5s infinite}
+.idle p{font:400 11px "Space Mono",monospace;letter-spacing:1px;color:var(--dim);text-transform:uppercase}
+
+/* controles */
+.controls{margin:0 12px 8px;display:flex;flex-direction:column;gap:8px}
+.scrub{display:flex;align-items:center;gap:10px}
+.scrub .t{font:700 10px "Space Mono",monospace;color:var(--dim);min-width:42px;text-align:center}
+.track{flex:1;height:8px;background:#1a1530;border-radius:999px;position:relative;cursor:pointer;border:1px solid var(--line)}
+.track .buf{position:absolute;inset:0 auto 0 0;width:0;background:#2a2350;border-radius:999px}
+.track .fill{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(90deg,var(--cyan),var(--mag));
+  border-radius:999px;box-shadow:0 0 10px rgba(25,240,255,.5)}
+.track .knob{position:absolute;top:50%;width:15px;height:15px;border-radius:50%;background:#fff;
+  transform:translate(-50%,-50%);box-shadow:0 0 10px var(--cyan);left:0}
+.crow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.crow .play{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-size:1.2rem;
+  background:linear-gradient(120deg,var(--mag),var(--vio));color:#fff;box-shadow:0 0 18px rgba(255,43,214,.45);transition:.15s}
+.crow .play:active{transform:scale(.9)}
+.crow .ctl{width:42px;height:42px;border-radius:11px;border:1px solid var(--line);font-size:1rem;transition:.15s}
+.crow .ctl:hover{border-color:var(--cyan);color:var(--cyan)}
+.crow .vol{display:flex;align-items:center;gap:7px;flex:1;min-width:120px}
+.crow .vol input[type=range]{flex:1;accent-color:var(--cyan);height:4px}
+.crow .modes{display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:3px}
+.crow .modes button{font-size:.95rem;width:36px;height:34px;border-radius:8px;color:var(--dim);transition:.15s}
+.crow .modes button.on{background:linear-gradient(120deg,var(--cyan),var(--vio));color:#06121a;box-shadow:0 0 12px rgba(25,240,255,.4)}
+
+/* chat */
+.chatcol{min-height:0;display:flex;flex-direction:column;background:var(--bg2);border-top:1px solid var(--line);overflow:hidden}
+.chathead{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line)}
+.chathead .arc{font-size:.8rem;letter-spacing:1px;color:var(--cyan);text-shadow:0 0 10px rgba(25,240,255,.4)}
+.chathead .roster{display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:0;overflow:hidden;max-height:26px}
+.chip{display:flex;align-items:center;gap:5px;font:600 10px "Space Mono",monospace;padding:3px 8px;border-radius:999px;
+  background:var(--panel);border:1px solid var(--line);white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis}
+.chip i{width:6px;height:6px;border-radius:50%}
+.msgs{flex:1;min-height:0;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:9px;scroll-behavior:smooth}
+.msgs::-webkit-scrollbar{width:8px}.msgs::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+.msg{display:flex;flex-direction:column;gap:2px;animation:pop .22s both}
+.msg .meta{display:flex;align-items:baseline;gap:7px}
+.msg .nm{font:700 12px "Space Grotesk",sans-serif}
+.msg .ts{font:400 9px "Space Mono",monospace;color:var(--dim2)}
+.msg .tx{font-size:14px;line-height:1.45;color:var(--ink);word-break:break-word}
+.msg.me .nm::after{content:" (tú)";color:var(--dim2);font-weight:400}
+.msg.sticker .tx{font-size:2.7rem;line-height:1.1;filter:drop-shadow(0 0 10px rgba(255,255,255,.25))}
+.msg.sys{align-items:center;text-align:center}
+.msg.sys .tx{font:600 10px "Space Mono",monospace;letter-spacing:1px;color:var(--dim2);text-transform:uppercase;
+  background:var(--panel);border:1px dashed var(--line);padding:5px 12px;border-radius:999px}
+.empty{margin:auto;text-align:center;color:var(--dim2);font:400 12px "Space Mono",monospace;letter-spacing:.5px;padding:20px}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}}
+
+/* composer + picker */
+.composer{border-top:1px solid var(--line);background:var(--panel);padding:8px 10px;padding-bottom:max(8px,env(safe-area-inset-bottom))}
+.reactrow{display:flex;gap:6px;margin-bottom:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.reactrow::-webkit-scrollbar{display:none}
+.reactrow button{font-size:1.35rem;width:42px;height:40px;flex:0 0 auto;border-radius:11px;border:1px solid var(--line);
+  background:var(--panel2);transition:.12s}
+.reactrow button:hover{border-color:var(--mag);transform:translateY(-2px)}
+.reactrow button:active{transform:scale(.85)}
+.inrow{display:flex;gap:8px;align-items:flex-end}
+.inrow .emoji{width:44px;height:44px;flex:0 0 auto;border-radius:11px;border:1px solid var(--line);font-size:1.2rem;transition:.15s}
+.inrow .emoji.on{border-color:var(--yel);color:var(--yel);box-shadow:0 0 12px rgba(255,225,77,.35)}
+.inrow .txt{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:11px;color:var(--ink);
+  padding:12px;font-size:14px;max-height:120px;resize:none;line-height:1.4}
+.inrow .txt:focus{outline:0;border-color:var(--cyan);box-shadow:var(--glow-c)}
+.inrow .send{width:46px;height:46px;flex:0 0 auto;border-radius:11px;font-size:1.2rem;color:#06121a;
+  background:linear-gradient(120deg,var(--cyan),var(--lime));box-shadow:0 0 16px rgba(25,240,255,.4);transition:.15s}
+.inrow .send:active{transform:scale(.9)}
+.picker{display:none;margin-bottom:8px;background:var(--bg);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.picker.on{display:block;animation:pop .2s both}
+.picker .tabs{display:flex;gap:4px;padding:6px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.picker .tabs::-webkit-scrollbar{display:none}
+.picker .tabs button{font:700 9px "Space Mono",monospace;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;
+  border-radius:8px;color:var(--dim);white-space:nowrap;border:1px solid transparent}
+.picker .tabs button.on{color:#06121a;background:var(--cyan)}
+.picker .grid{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;padding:8px;max-height:150px;overflow-y:auto}
+.picker .grid button{font-size:1.3rem;aspect-ratio:1;border-radius:8px;transition:.1s}
+.picker .grid button:hover{background:var(--panel2)}
+.picker .grid button:active{transform:scale(.8)}
+
+/* modos móvil */
+/* cine: stage grande, chat como drawer */
+body.m-cine .body{grid-template-rows:1fr}
+body.m-cine .chatcol{position:fixed;left:0;right:0;bottom:0;height:62vh;z-index:50;transform:translateY(calc(100% - 46px));
+  transition:transform .3s cubic-bezier(.4,0,.2,1);border-top:2px solid var(--mag);border-radius:18px 18px 0 0;
+  box-shadow:0 -10px 40px rgba(0,0,0,.6)}
+body.m-cine .chatcol.open{transform:translateY(0)}
+body.m-cine .chathead{cursor:pointer}
+body.m-cine .chathead::before{content:"";position:absolute;left:50%;top:5px;transform:translateX(-50%);width:40px;height:4px;border-radius:999px;background:var(--line)}
+body.m-cine .chathead{position:relative;padding-top:14px}
+body.m-cine .stage{margin-top:8px}
+/* chat: video pip flotante */
+body.m-chat .stagecol{position:fixed;right:12px;bottom:90px;width:46vw;max-width:230px;z-index:60;
+  border-radius:12px;overflow:visible;filter:drop-shadow(0 8px 24px rgba(0,0,0,.7))}
+body.m-chat .stage{margin:0;aspect-ratio:16/9;border-color:var(--mag);box-shadow:0 0 24px rgba(255,43,214,.4)}
+body.m-chat .controls{display:none}
+body.m-chat .stagecol .pipclose{position:absolute;top:-10px;right:-10px;width:26px;height:26px;border-radius:50%;
+  background:var(--red);color:#fff;display:grid;place-items:center;font-size:.8rem;z-index:5;box-shadow:0 0 10px var(--red)}
+body:not(.m-chat) .pipclose{display:none}
+body.m-chat .body{grid-template-rows:1fr}
+
+/* desktop */
+@media(min-width:900px){
+  .body{grid-template-columns:minmax(0,1.7fr) minmax(320px,1fr);grid-template-rows:1fr}
+  .stagecol{border-right:1px solid var(--line)}
+  .chatcol{border-top:0}
+  .stage{margin:14px}
+  .controls{margin:0 14px 14px}
+  body.m-cine .chatcol{position:static;transform:none;height:auto;box-shadow:none;border-radius:0;border-top:0}
+  body.m-chat .stagecol{position:static;width:auto;filter:none}
+  body.m-chat .controls{display:flex}
+  .picker .grid{grid-template-columns:repeat(10,1fr)}
+}
+
+/* ── lobby ── */
+.lobby{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:18px;overflow:auto;
+  background:radial-gradient(120% 90% at 50% 0%,rgba(255,43,214,.12),transparent 60%),var(--bg)}
+.lobby .card{width:100%;max-width:440px;background:var(--panel);border:1px solid var(--line);border-radius:20px;
+  padding:26px 22px;box-shadow:0 0 60px -10px rgba(25,240,255,.25),0 30px 60px -20px #000;position:relative;overflow:hidden}
+.lobby .card::before{content:"";position:absolute;inset:0;border-radius:20px;padding:1px;
+  background:linear-gradient(130deg,var(--cyan),transparent 40%,transparent 60%,var(--mag));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.lobby .disp{text-align:center;font-size:2.6rem;color:#fff;line-height:1;
+  text-shadow:0 0 8px var(--cyan),0 0 22px var(--cyan),0 0 44px rgba(25,240,255,.4);animation:flick 6s infinite}
+.lobby .disp i{color:var(--mag);text-shadow:0 0 8px var(--mag),0 0 22px var(--mag)}
+.lobby .lede{text-align:center;font:400 12px "Space Mono",monospace;letter-spacing:1px;color:var(--dim);
+  text-transform:uppercase;margin:10px 0 22px}
+.lobby label{display:block;font:700 9px "Space Mono",monospace;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin:0 0 6px 2px}
+.lobby input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;color:var(--ink);
+  padding:13px 14px;font-size:14px;margin-bottom:16px;transition:.15s}
+.lobby input:focus{outline:0;border-color:var(--cyan);box-shadow:var(--glow-c)}
+.lobby input::placeholder{color:var(--dim2)}
+.lobby .mono-in{font-family:"Space Mono",monospace;letter-spacing:2px;text-transform:uppercase}
+.lobby .btn{width:100%;justify-content:center;display:flex;padding:14px;font-size:12px;margin-bottom:10px}
+.lobby .div{display:flex;align-items:center;gap:10px;color:var(--dim2);font:700 9px "Space Mono",monospace;letter-spacing:2px;margin:6px 0 14px}
+.lobby .div::before,.lobby .div::after{content:"";flex:1;height:1px;background:var(--line)}
+.lobby .err{color:var(--red);font:600 11px "Space Mono",monospace;text-align:center;min-height:14px;margin-top:4px}
+
+/* toasts */
+#toasts{position:fixed;left:12px;right:12px;bottom:96px;z-index:3000;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+@media(min-width:900px){#toasts{left:auto;right:18px;bottom:18px;align-items:flex-end;max-width:320px}}
+.toast{pointer-events:auto;display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--line);
+  border-left:4px solid var(--cyan);color:var(--ink);padding:11px 14px;border-radius:10px;font-size:12.5px;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);animation:slidein .25s both;max-width:100%}
+.toast.mag{border-left-color:var(--mag)}.toast.lime{border-left-color:var(--lime)}.toast.red{border-left-color:var(--red)}
+.toast.out{opacity:0;transform:translateY(8px);transition:.3s}
+@keyframes slidein{from{opacity:0;transform:translateY(12px)}}
+
+.filewarn{position:fixed;top:0;left:0;right:0;z-index:5000;background:var(--yel);color:#1a1500;
+  font:700 11px "Space Mono",monospace;text-align:center;padding:7px 12px;letter-spacing:.5px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body class="m-mix">
+<div class="scanlines"></div>
+<div id="fileWarn" class="filewarn hidden">⚠ MODO ARCHIVO · el P2P/WebRTC necesita http · en VS Code dale a "Go Live"</div>
+
+<!-- LOBBY -->
+<div class="lobby" id="lobby">
+  <div class="card">
+    <div class="disp">PELIS<i>DANI</i></div>
+    <p class="lede">gay el q lea esto</p>
+    <label for="nick">tu apodo en la sala</label>
+    <input id="nick" type="text" maxlength="16" placeholder="ej. nocturno_42" autocomplete="off" spellcheck="false">
+    <button class="btn primary" id="createBtn">＋ CREAR SALA NUEVA</button>
+    <div class="div">O ENTRAR A UNA</div>
+    <label for="joinCode">código de sala</label>
+    <input id="joinCode" class="mono-in" type="text" maxlength="24" placeholder="PEGA EL CÓDIGO" autocomplete="off" spellcheck="false">
+    <button class="btn lime" id="joinBtn">UNIRSE A LA SALA →</button>
+    <div class="err" id="lobbyErr"></div>
+  </div>
+</div>
+
+<!-- SALA -->
+<div class="room hidden" id="room">
+  <div class="top">
+    <div class="brand"><span class="logo">PELIS<i>DANI</i></span><span class="tag">P2P</span></div>
+    <span class="spacer"></span>
+    <span class="pill" id="rolePill"><span class="dot"></span><span id="roleTxt">—</span></span>
+    <span class="pill view"><span class="dot"></span><span id="viewCount">1</span></span>
+    <button class="iconbtn" id="fsBtn" title="Pantalla completa">⛶</button>
+    <button class="iconbtn" id="leaveBtn" title="Salir">⏻</button>
+  </div>
+
+  <div class="body">
+    <section class="stagecol">
+      <div class="srcbar" id="srcbar">
+        <div class="field"><span>🔗</span><input id="urlInput" type="text" placeholder="pega URL (.mp4 / .webm / youtube) y dale CARGAR" spellcheck="false" autocomplete="off"></div>
+        <button class="btn primary" id="loadBtn">CARGAR</button>
+      </div>
+      <div class="codebox hidden" id="codebox">
+        <span class="lbl">código</span><span class="code mono" id="roomCode">—</span>
+        <span class="grow"></span>
+        <button class="btn" id="copyBtn">COPIAR</button>
+        <button class="btn" id="shareBtn">COMPARTIR</button>
+      </div>
+
+      <div class="stage" id="stage">
+        <div class="badge">
+          <span class="b rec"><i></i>EN VIVO</span>
+          <span class="b sync hidden" id="syncBadge">SYNC</span>
+        </div>
+        <div class="floaters" id="floaters"></div>
+        <div class="idle" id="idle"><div class="disp">SIN SEÑAL</div><p id="idleTxt">el anfitrión carga la peli para empezar</p></div>
+        <button class="pipclose" id="pipClose" title="volver">✕</button>
+      </div>
+
+      <div class="controls">
+        <div class="scrub">
+          <span class="t mono" id="curT">0:00</span>
+          <div class="track" id="track"><div class="buf" id="buf"></div><div class="fill" id="fill"></div><div class="knob" id="knob"></div></div>
+          <span class="t mono" id="durT">0:00</span>
+        </div>
+        <div class="crow">
+          <button class="play" id="playBtn">▶</button>
+          <button class="ctl" id="backBtn" title="-10s">⏪</button>
+          <button class="ctl" id="fwdBtn" title="+10s">⏩</button>
+          <div class="vol"><span>🔊</span><input type="range" id="vol" min="0" max="1" step="0.05" value="1"></div>
+          <div class="modes" id="modes">
+            <button data-m="cine" title="Cine">🎬</button>
+            <button data-m="mix" class="on" title="Mixto">◑</button>
+            <button data-m="chat" title="Chat + PiP">💬</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="chatcol" id="chatcol">
+      <div class="chathead" id="chatHead">
+        <span class="arc">CHAT</span>
+        <div class="roster" id="roster"></div>
+      </div>
+      <div class="msgs" id="msgs"><div class="empty">silencio en la sala…<br>manda el primer mensaje </div></div>
+      <div class="composer">
+        <div class="picker" id="picker">
+          <div class="tabs" id="pickTabs"></div>
+          <div class="grid" id="pickGrid"></div>
+        </div>
+        <div class="reactrow" id="reactRow"></div>
+        <div class="inrow">
+          <button class="emoji" id="emojiBtn" title="stickers">😀</button>
+          <textarea class="txt" id="chatInput" rows="1" placeholder="opina de la peli…" maxlength="400"></textarea>
+          <button class="send" id="sendBtn" title="enviar">➤</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+(()=>{
+"use strict";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const isFile=location.protocol==='file:';
+if(isFile) $('#fileWarn').classList.remove('hidden');
+
+/* viewport height fix */
+function setVH(){document.documentElement.style.setProperty('--vh',(window.visualViewport?window.visualViewport.height:window.innerHeight)/100+'px')}
+setVH(); window.addEventListener('resize',setVH);
+if(window.visualViewport) window.visualViewport.addEventListener('resize',setVH);
+
+/* ── paleta de colores por usuario ── */
+const COLORS=['#19f0ff','#ff2bd6','#b6ff3a','#8b5cff','#ffe14d','#ff4d6d','#43d9c0','#ff9d3a'];
+const pickColor=s=>{let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return COLORS[h%COLORS.length]};
+
+/* ── stickers / reacciones ── */
+const REACTS=['❤️','🔥','😂','😱','👏','','🤯',''];
+const STICK={
+  'Cine':['🎬','','🎞️','','📽️','🎟️','🌟','','','🎙️','🎧','🎵','🏆','','🎯','📼'],
+  'Caras':['😀','😂','🤣','😍','🥰','😎','🤩','🥳','','🤯','😭','😡','🤡','💀','','🫣','😴','🤤','🥶','🤠'],
+  'Fuego':['🔥','','⚡','✨','💫','☄️','🌈','💯','🚀','🌶️','❄️','','🌊','☀️','','⭐'],
+  'Manos':['👍','👎','👏','🙌','🤝','','🤞','🤟','👋','🫶','','🙏','️','','👀','💅']
+};
+const isOnlyEmoji=t=>{const s=t.trim();return s.length>0&&s.length<=8&&/^(\p{Extended_Pictographic}|\p{Emoji_Modifier}|\uFE0F|\u200D)+$/u.test(s)};
+
+/* ── estado ─ */
+const S={
+  role:null, me:null, peer:null, hostConn:null, conns:new Map(), roster:new Map(),
+  url:null, type:null, playing:false, time:0, dur:0,
+  applyingRemote:false, ytReady:false, ytPending:null, lastBroadcast:0
+};
+let myName=localStorage.getItem('nc_nick')||'';
+let myColor=COLORS[0];
+
+/* ── toast ── */
+function toast(msg,kind){
+  const t=document.createElement('div');t.className='toast'+(kind?' '+kind:'');
+  t.textContent=msg; $('#toasts').appendChild(t);
+  setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),320)},2800);
+}
+
+/* ── reproductor abstracto (video + youtube) ── */
+let ytAPI=null, ytPlayer=null;
+function loadYTAPI(){return new Promise(res=>{
+  if(window.YT&&window.YT.Player)return res();
+  if(ytAPI)return ytAPI.then(res);
+  ytAPI=new Promise(r=>{const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';
+    const w=window.onYouTubeIframeAPIReady;window.onYouTubeIframeAPIReady=()=>{w&&w();r()};document.head.appendChild(s)});
+  ytAPI.then(res);
+})}
+function detect(url){
+  if(/\.(mp4|webm|ogv|ogg|mov)(\?.*)?$/i.test(url))return 'file';
+  if(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{6,20})/.test(url))return 'youtube';
+  if(/vimeo\.com|dailymotion\.com|dai\.ly|streamable\.com/.test(url))return 'embed';
+  return 'external';
+}
+function ytId(url){const m=url.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{6,20})/);return m?m[1]:null}
+
+async function loadSource(url){
+  S.url=url; S.type=detect(url); S.ytReady=false;
+  const stage=$('#stage');
+  stage.querySelectorAll('video,iframe,.extover').forEach(e=>e.remove());
+  $('#idle').classList.add('hidden');
+  if(S.type==='file'){
+    const v=document.createElement('video');v.src=url;v.playsInline=true;v.preload='metadata';v.volume=+$('#vol').value;
+    v.addEventListener('loadedmetadata',()=>{S.dur=v.duration||0;updScrub()});
+    v.addEventListener('timeupdate',()=>{if(!S.applyingRemote){S.time=v.currentTime;updScrub();if(S.role==='host')maybeBroadcast()}});
+    v.addEventListener('play',()=>{if(!S.applyingRemote){S.playing=true;updPlay();if(S.role==='host')broadcastState()}});
+    v.addEventListener('pause',()=>{if(!S.applyingRemote){S.playing=false;updPlay();if(S.role==='host')broadcastState()}});
+    v.addEventListener('ended',()=>{S.playing=false;updPlay();if(S.role==='host')broadcastState()});
+    v.addEventListener('error',()=>toast('no se pudo cargar ese archivo ✗','red'));
+    stage.insertBefore(v,$('#floaters').nextSibling);
+    S.video=v; S.yt=null;
+  } else if(S.type==='youtube'){
+    const id=ytId(url);
+    const wrap=document.createElement('div');wrap.id='ytwrap';wrap.style.cssText='position:absolute;inset:0';
+    stage.insertBefore(wrap,$('#floaters').nextSibling);
+    S.video=null; S.yt=null;
+    try{
+      await loadYTAPI();
+      ytPlayer=new YT.Player('ytwrap',{videoId:id,width:'100%',height:'100%',playerVars:{autoplay:0,rel:0,modestbranding:1,playsinline:1,origin:location.origin||undefined},
+        events:{onReady:()=>{S.ytReady=true;S.dur=ytPlayer.getDuration()||0;updScrub();if(S.ytPending){applyYT(S.ytPending);S.ytPending=null}},
+          onStateChange:e=>{if(S.applyingRemote)return;const st=e.data;
+            S.playing=(st===YT.PlayerState.PLAYING);S.time=ytPlayer.getCurrentTime()||0;updPlay();updScrub();
+            if(S.role==='host')broadcastState()}}});
+      S.yt=ytPlayer;
+    }catch(err){showExt(url,'YouTube no cargó')}
+  } else if(S.type==='embed'){
+    showExt(url,'Embed no sincronizable');
+  } else {
+    showExt(url,'Sitio externo');
+  }
+  if(S.role==='guest') $('#syncBadge').classList.remove('hidden');
+}
+function showExt(url,title){
+  let host='—';try{host=new URL(url).hostname.replace(/^www\./,'')}catch(e){}
+  const d=document.createElement('div');d.className='extover';
+  d.innerHTML=`<div><b>${esc(title)}<br>SIN SYNC</b><span class="dom mono">${esc(host)}</span>
+    <p>Esta web bloquea el reproductor embebido por su propia seguridad, así que no se puede sincronizar entre amigos. Ábrela en otra pestaña mientras chatean, o consigue el link directo al .mp4.</p>
+    <a href="${esc(url)}" target="_blank" rel="noopener">ABRIR EN OTRA PESTAÑA ↗</a></div>`;
+  $('#stage').insertBefore(d,$('#floaters').nextSibling);
+}
+function applyYT(p){if(!S.yt||!S.ytReady)return;S.applyingRemote=true;try{
+  if(typeof p.time==='number')S.yt.seekTo(p.time,true);
+  if(p.playing)S.yt.playVideo();else S.yt.pauseVideo();
+}catch(e){}setTimeout(()=>S.applyingRemote=false,250)}
+
+/* transporte unificado */
+function pPlay(){if(S.type==='file'&&S.video){S.video.play().catch(()=>{})}else if(S.yt&&S.ytReady)S.yt.playVideo()}
+function pPause(){if(S.type==='file'&&S.video)S.video.pause();else if(S.yt&&S.ytReady)S.yt.pauseVideo()}
+function pSeek(t){S.applyingRemote=true;if(S.type==='file'&&S.video){S.video.currentTime=t}else if(S.yt&&S.ytReady)S.yt.seekTo(t,true);S.time=t;updScrub();setTimeout(()=>S.applyingRemote=false,250)}
+function pTime(){if(S.type==='file'&&S.video)return S.video.currentTime||0;if(S.yt&&S.ytReady)return S.yt.getCurrentTime()||0;return S.time}
+function pPlaying(){if(S.type==='file'&&S.video)return !S.video.paused;if(S.yt&&S.ytReady)return ytPlayer.getPlayerState()===YT.PlayerState.PLAYING;return S.playing}
+function pSetVol(v){if(S.video)S.video.volume=v}
+
+/* ── UI scrub / play ── */
+function fmt(s){s=Math.max(0,s||0);const m=Math.floor(s/60),ss=Math.floor(s%60);return m+':'+String(ss).padStart(2,'0')}
+function updScrub(){$('#curT').textContent=fmt(S.time);$('#durT').textContent=fmt(S.dur);
+  const p=S.dur?Math.min(1,S.time/S.dur):0;$('#fill').style.width=(p*100)+'%';$('#knob').style.left=(p*100)+'%'}
+function updPlay(){$('#playBtn').textContent=S.playing?'❚❚':'▶'}
+
+/* ── red P2P ── */
+function send(conn,obj){try{conn.send(obj)}catch(e){}}
+function broadcast(obj,except){S.conns.forEach((c,id)=>{if(id!==except&&c.open)send(c,obj)})}
+function sendHost(obj){if(S.hostConn&&S.hostConn.open)send(S.hostConn,obj)}
+
+function handleData(fromId,obj){
+  if(!obj||!obj.t)return;
+  if(S.role==='host'){
+    // retransmisión en estrella + aplicar comandos
+    if(obj.t==='hello'){S.roster.set(fromId,{name:obj.name,color:obj.color});broadcast(obj,fromId);broadcastRoster();sysMsg(obj.name+' entró a la sala');return}
+    if(obj.t==='bye'){S.roster.delete(fromId);broadcast(obj,fromId);broadcastRoster();sysMsg((obj.name||'alguien')+' salió');return}
+    if(obj.t==='cmd'){applyCmd(obj);broadcastState();return}
+    if(obj.t==='load'){doLoad(obj.url);return}
+    if(obj.t==='chat'||obj.t==='react'){broadcast(obj);if(obj.t==='chat')renderMsg(obj);else spawnFloater(obj.e);return}
+  } else {
+    // guest
+    if(obj.t==='state'){applyState(obj);return}
+    if(obj.t==='roster'){S.roster=new Map(Object.entries(obj.list));renderRoster();return}
+    if(obj.t==='hello'){S.roster.set(fromId,{name:obj.name,color:obj.color});renderRoster();sysMsg(obj.name+' entró a la sala');return}
+    if(obj.t==='bye'){S.roster.delete(fromId);renderRoster();sysMsg((obj.name||'alguien')+' salió');return}
+    if(obj.t==='chat'){renderMsg(obj);return}
+    if(obj.t==='react'){spawnFloater(obj.e);return}
+  }
+}
+function applyCmd(o){ // solo host
+  if(o.c==='play'){pPlay()}
+  else if(o.c==='pause'){pPause()}
+  else if(o.c==='toggle'){pPlaying()?pPause():pPlay()}
+  else if(o.c==='seek'){pSeek(Math.max(0,o.time||0))}
+  else if(o.c==='delta'){pSeek(Math.max(0,pTime()+(o.d||0)))}
+}
+function applyState(o){ // solo guest
+  if(o.url&&o.url!==S.url){loadSource(o.url).then(()=>applyState(o));return}
+  if(!S.url)return;
+  S.dur=o.dur||S.dur;updScrub();
+  S.applyingRemote=true;
+  if(typeof o.time==='number'){const diff=Math.abs(pTime()-o.time);if(diff>0.7)pSeek(o.time);else S.time=pTime()}
+  const want=!!o.playing;
+  if(want!==pPlaying()){want?pPlay():pPause()}
+  S.playing=want;updPlay();updScrub();
+  setTimeout(()=>S.applyingRemote=false,300);
+}
+function broadcastState(){
+  const obj={t:'state',url:S.url,type:S.type,playing:pPlaying(),time:pTime(),dur:S.dur||0};
+  S.playing=obj.playing;S.time=obj.time;updPlay();updScrub();
+  broadcast(obj);S.lastBroadcast=Date.now();
+}
+function maybeBroadcast(){if(Date.now()-S.lastBroadcast>2500)broadcastState()}
+function broadcastRoster(){const list={};S.roster.forEach((v,k)=>list[k]=v);broadcast({t:'roster',list})}
+
+function registerConn(conn){
+  S.conns.set(conn.peer,conn);
+  conn.on('data',d=>handleData(conn.peer,d));
+  conn.on('close',()=>{S.conns.delete(conn.peer);
+    const r=S.roster.get(conn.peer);if(r){S.roster.delete(conn.peer);if(S.role==='host')broadcastRoster();renderRoster();sysMsg((r.name||'alguien')+' se desconectó')}});
+  conn.on('error',()=>{});
+}
+
+function startPeer(){
+  return new Promise((resolve,reject)=>{
+    if(typeof Peer==='undefined'){reject('PeerJS no cargó (revisa tu conexión)');return}
+    const peer=new Peer(undefined,{debug:1,config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]}});
+    peer.on('open',id=>{S.peer=peer;resolve(id)});
+    peer.on('error',e=>{
+      const msg=String(e&&e.type||e);
+      if(msg==='peer-unavailable')toast('sala no encontrada ✗','red');
+      else if(msg==='unavailable-id')toast('código en uso, reintenta','red');
+      else if(msg==='network'||msg==='server-error'||msg==='disconnected'){toast('red P2P caída · reconectando…','red');setTimeout(()=>{try{peer.reconnect()}catch(e){}},2500)}
+      else toast('error P2P: '+msg,'red');
+      if(!S.role)reject(msg);
+    });
+    peer.on('disconnected',()=>{setTimeout(()=>{try{peer.reconnect()}catch(e){}},2000)});
+  });
+}
+
+/* ── crear / unir ── */
+async function createRoom(){
+  setErr('');
+  if(!checkNick())return;
+  $('#createBtn').textContent='CREANDO…';$('#createBtn').disabled=true;
+  try{
+    const id=await startPeer();
+    S.role='host'; S.me=id;
+    S.roster.set(id,{name:myName,color:myColor});
+    S.peer.on('connection',c=>{c.on('open',()=>registerConn(c))});
+    enterRoom();
+    $('#roomCode').textContent=prettyCode(id);
+    $('#codebox').classList.remove('hidden');
+    toast('sala creada · pasa el código a tu gente','lime');
+  }catch(e){setErr('no se pudo crear la sala: '+e)}
+  finally{$('#createBtn').textContent='＋ CREAR SALA NUEVA';$('#createBtn').disabled=false}
+}
+async function joinRoom(){
+  setErr('');
+  if(!checkNick())return;
+  const code=$('#joinCode').value.trim().replace(/\s+/g,'');
+  if(!code){setErr('pega un código de sala');return}
+  $('#joinBtn').textContent='CONECTANDO…';$('#joinBtn').disabled=true;
+  try{
+    const id=await startPeer();
+    S.role='guest'; S.me=id;
+    const realId=resolveCode(code);
+    const conn=S.peer.connect(realId,{reliable:true,serialization:'json'});
+    let opened=false;
+    const to=setTimeout(()=>{if(!opened){setErr('no hay nadie con ese código · ¿está creada la sala?');$('#joinBtn').textContent='UNIRSE A LA SALA →';$('#joinBtn').disabled=false}},9000);
+    conn.on('open',()=>{opened=true;clearTimeout(to);S.hostConn=conn;registerConn(conn);
+      send(conn,{t:'hello',name:myName,color:myColor});enterRoom();toast('conectado a la sala ✓','cyan')});
+    conn.on('error',()=>{clearTimeout(to);setErr('fallo al conectar con la sala')});
+    conn.on('close',()=>{if(S.role==='guest'){toast('el anfitrión cerró la sala','red')}});
+  }catch(e){setErr('no se pudo conectar: '+e);$('#joinBtn').textContent='UNIRSE A LA SALA →';$('#joinBtn').disabled=false}
+}
+function prettyCode(id){return id.replace(/[^a-z0-9]/gi,'').slice(-6).toUpperCase()||id.slice(0,6).toUpperCase()}
+function resolveCode(code){ // acepta código corto o id completo
+  const c=code.toUpperCase();
+  // si parece id completo de peerjs lo usamos tal cual; si es corto, no podemos resolverlo sin servidor → pedimos id completo
+  return code; // el anfitrión muestra su id real completo en "compartir"; el código corto es solo visual
+}
+function checkNick(){
+  myName=$('#nick').value.trim().slice(0,16);
+  if(!myName){setErr('pon un apodo primero');$('#nick').focus();return false}
+  localStorage.setItem('nc_nick',myName);myColor=pickColor(myName);return true;
+}
+function setErr(m){$('#lobbyErr').textContent=m}
+
+/* ── entrar a la sala (UI) ── */
+function enterRoom(){
+  $('#lobby').classList.add('hidden');$('#room').classList.remove('hidden');
+  $('#rolePill').className='pill '+(S.role==='host'?'host':'guest');
+  $('#roleTxt').textContent=S.role==='host'?'ANFITRIÓN':'INVITADO';
+  $('#idleTxt').textContent=S.role==='host'?'carga una URL arriba para empezar la función':'esperando a que el anfitrión cargue la peli…';
+  renderRoster();
+  if(S.role==='host'){ /* host controla src */ }
+  // tick de sync del host
+  if(S.role==='host'){clearInterval(S._tick);S._tick=setInterval(()=>{if(S.url)broadcastState()},2500)}
+}
+
+/* ── chat / reacciones UI ── */
+function renderRoster(){
+  const r=$('#roster');r.innerHTML='';
+  const all=new Map(S.roster);
+  if(S.role==='host'&&S.me&&!all.has(S.me))all.set(S.me,{name:myName,color:myColor});
+  $('#viewCount').textContent=Math.max(1,all.size);
+  all.forEach((v)=>{const c=document.createElement('span');c.className='chip';
+    c.innerHTML=`<i style="background:${v.color}"></i>${esc(v.name)}`;r.appendChild(c)});
+}
+function renderMsg(o){
+  const box=$('#msgs');const empty=box.querySelector('.empty');if(empty)empty.remove();
+  const me=o.id===S.me;
+  const div=document.createElement('div');
+  const sticker=isOnlyEmoji(o.text);
+  div.className='msg'+(me?' me':'')+(sticker?' sticker':'');
+  div.innerHTML=`<div class="meta"><span class="nm" style="color:${o.color}">${esc(o.name)}</span><span class="ts mono">${fmtClock(o.ts)}</span></div><div class="tx">${sticker?esc(o.text):esc(o.text)}</div>`;
+  box.appendChild(div);
+  const near=box.scrollHeight-box.scrollTop-box.clientHeight<120;
+  if(near)box.scrollTop=box.scrollHeight;
+}
+function sysMsg(t){const box=$('#msgs');const empty=box.querySelector('.empty');if(empty)empty.remove();
+  const d=document.createElement('div');d.className='msg sys';d.innerHTML=`<div class="tx">${esc(t)}</div>`;box.appendChild(d);box.scrollTop=box.scrollHeight}
+function fmtClock(ts){const d=new Date(ts);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+
+function sendChat(){
+  const inp=$('#chatInput');const text=inp.value.trim();if(!text)return;
+  const obj={t:'chat',id:S.me,name:myName,color:myColor,text,ts:Date.now()};
+  if(S.role==='host'){broadcast(obj);renderMsg(obj)}else sendHost(obj);
+  inp.value='';inp.style.height='auto';inp.focus();
+}
+function sendReact(e){
+  spawnFloater(e);
+  const obj={t:'react',id:S.me,e};
+  if(S.role==='host')broadcast(obj);else sendHost(obj);
+}
+function spawnFloater(e){
+  const f=document.createElement('span');f.className='floater';f.textContent=e;
+  f.style.left=(8+Math.random()*82)+'%';
+  f.style.setProperty('--rot',(Math.random()*40-20)+'deg');
+  f.style.fontSize=(1.6+Math.random()*1.4)+'rem';
+  $('#floaters').appendChild(f);setTimeout(()=>f.remove(),2700);
+}
+
+/* ── picker ── */
+function buildPicker(){
+  const tabs=$('#pickTabs'),grid=$('#pickGrid');
+  const cats=Object.keys(STICK);let cur=cats[0];
+  tabs.innerHTML=cats.map((c,i)=>`<button class="${i?'':'on'}" data-c="${c}">${c}</button>`).join('');
+  function render(c){grid.innerHTML=STICK[c].map(e=>`<button data-e="${e}">${e}</button>`).join('')}
+  render(cur);
+  tabs.onclick=ev=>{const b=ev.target.closest('button');if(!b)return;cur=b.dataset.c;
+    tabs.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));render(cur)};
+  grid.onclick=ev=>{const b=ev.target.closest('button');if(!b)return;
+    const inp=$('#chatInput');inp.value+=b.dataset.e;inp.focus()}
+}
+function buildReacts(){$('#reactRow').innerHTML=REACTS.map(e=>`<button data-e="${e}">${e}</button>`).join('')}
+
+/* ── controles de transporte (mandan cmd al host o aplican si host) ── */
+function cmd(c,extra){
+  if(S.role==='host'){applyCmd({c,...extra});broadcastState()}
+  else sendHost({t:'cmd',c,...extra});
+}
+
+/* ── scrub interactivo ── */
+function scrubTo(clientX){
+  const r=$('#track').getBoundingClientRect();
+  const p=Math.min(1,Math.max(0,(clientX-r.left)/r.width));
+  cmd('seek',{time:p*(S.dur||0)});
+}
+let dragging=false;
+$('#track').addEventListener('pointerdown',e=>{dragging=true;$('#track').setPointerCapture(e.pointerId);scrubTo(e.clientX)});
+$('#track').addEventListener('pointermove',e=>{if(dragging)scrubTo(e.clientX)});
+$('#track').addEventListener('pointerup',()=>dragging=false);
+$('#track').addEventListener('pointercancel',()=>dragging=false);
+
+/* ── modos de vista ── */
+function setMode(m){
+  document.body.classList.remove('m-cine','m-mix','m-chat');
+  document.body.classList.add('m-'+m);
+  $('#modes').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
+  if(m!=='cine')$('#chatcol').classList.remove('open');
+  setVH();
+}
+
+/* ── pantalla completa ── */
+function toggleFS(){const el=$('#stage');
+  if(!document.fullscreenElement){(el.requestFullscreen||el.webkitRequestFullscreen||(()=>{})).call(el)}
+  else{(document.exitFullscreen||document.webkitExitFullscreen||(()=>{})).call(document)}}
+
+/* ── compartir / copiar código ── */
+function fullCode(){return S.me||''}
+async function copyCode(){
+  const txt=fullCode();
+  try{await navigator.clipboard.writeText(txt);toast('código copiado ','cyan')}
+  catch(e){toast('copia manual: '+prettyCode(S.me),'red')}
+}
+async function shareCode(){
+  const data={title:'NEONCAST',text:'entra a mi sala de cine 🎬',url:location.href.split('#')[0]+'#'+fullCode()};
+  if(navigator.share){try{await navigator.share(data)}catch(e){}}
+  else{await copyCode()}
+}
+
+/* ── cargar URL ── */
+function doLoad(url){
+  url=(url||'').trim();if(!url){toast('pega una URL primero','red');return}
+  try{new URL(url)}catch(e){toast('esa URL no parece válida ✗','red');return}
+  if(S.role==='host'){loadSource(url).then(()=>broadcastState());}
+  else sendHost({t:'load',url});
+}
+
+/* ── salir ── */
+function leave(){
+  try{if(S.role==='host')broadcast({t:'bye',name:myName});else sendHost({t:'bye',name:myName})}catch(e){}
+  try{S.peer&&S.peer.destroy()}catch(e){}
+  S.conns.clear();S.roster.clear();S.role=null;S.hostConn=null;S.url=null;
+  clearInterval(S._tick);
+  $('#room').classList.add('hidden');$('#lobby').classList.remove('hidden');
+  $('#stage').querySelectorAll('video,iframe,.extover').forEach(e=>e.remove());
+  $('#idle').classList.remove('hidden');$('#codebox').classList.add('hidden');
+  $('#syncBadge').classList.add('hidden');$('#msgs').innerHTML='<div class="empty">silencio en la sala…<br>manda el primer mensaje 🍿</div>';
+}
+
+/* ── eventos ── */
+$('#createBtn').onclick=createRoom;
+$('#joinBtn').onclick=joinRoom;
+$('#nick').addEventListener('keydown',e=>{if(e.key==='Enter')$('#joinCode').focus()});
+$('#joinCode').addEventListener('keydown',e=>{if(e.key==='Enter')joinRoom()});
+$('#loadBtn').onclick=()=>doLoad($('#urlInput').value);
+$('#urlInput').addEventListener('keydown',e=>{if(e.key==='Enter')doLoad($('#urlInput').value)});
+$('#playBtn').onclick=()=>cmd('toggle');
+$('#backBtn').onclick=()=>cmd('delta',{d:-10});
+$('#fwdBtn').onclick=()=>cmd('delta',{d:10});
+$('#vol').addEventListener('input',e=>pSetVol(+e.target.value));
+$('#sendBtn').onclick=sendChat;
+$('#chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat()}});
+$('#chatInput').addEventListener('input',e=>{const t=e.target;t.style.height='auto';t.style.height=Math.min(120,t.scrollHeight)+'px'});
+$('#emojiBtn').onclick=()=>{$('#picker').classList.toggle('on');$('#emojiBtn').classList.toggle('on')};
+$('#reactRow').onclick=ev=>{const b=ev.target.closest('button');if(b)sendReact(b.dataset.e)};
+$('#modes').onclick=ev=>{const b=ev.target.closest('button');if(b)setMode(b.dataset.m)};
+$('#fsBtn').onclick=toggleFS;
+$('#leaveBtn').onclick=()=>{if(confirm('¿salir de la sala?'))leave()};
+$('#copyBtn').onclick=copyCode;
+$('#shareBtn').onclick=shareCode;
+$('#chatHead').onclick=()=>{if(document.body.classList.contains('m-cine'))$('#chatcol').classList.toggle('open')};
+$('#pipClose').onclick=()=>setMode('mix');
+
+/* hash deep-link: #CODIGO pre-rellena */
+(function(){const h=location.hash.replace('#','');if(h){$('#joinCode').value=h}})();
+/* nick previo */
+if(myName)$('#nick').value=myName;
+
+buildPicker();buildReacts();setMode('mix');
+
+/* teclado global */
+document.addEventListener('keydown',e=>{
+  if($('#lobby').classList.contains('hidden')===false)return;
+  const el=document.activeElement;if(/INPUT|TEXTAREA/.test(el.tagName))return;
+  if(e.code==='Space'){e.preventDefault();cmd('toggle')}
+  else if(e.key==='ArrowRight')cmd('delta',{d:5});
+  else if(e.key==='ArrowLeft')cmd('delta',{d:-5});
+  else if(e.key==='f'||e.key==='F')toggleFS();
+});
+})();
+</script>
+</body>
+</html>
